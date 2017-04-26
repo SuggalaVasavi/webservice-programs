@@ -1,7 +1,5 @@
 package restlog1;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import javax.ws.rs.Consumes;
@@ -10,7 +8,11 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.google.gson.Gson;
+
 import restlog1.SecurityManager;
 import restlog1.User;
  
@@ -19,6 +21,7 @@ public class Service {
  
 @POST
  @Path("/login")
+//@Produces(MediaType.APPLICATION_JSON)
  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
  public String login(@FormParam("username") String username,
  @FormParam("password") String password) {
@@ -30,9 +33,10 @@ return getAllUsersList(username, password);
 public String getAllUsersList(String username,String password)
  {
  String userListData = null;
+ ArrayList<User> userList = new ArrayList<User>();
  try 
  {
- ArrayList<User> userList = null;
+ 
  SecurityManager securityManager= new SecurityManager();
  userList = securityManager.getAllUsersList();
  for (User user : userList) {
@@ -53,57 +57,54 @@ public String getAllUsersList(String username,String password)
  }
 @POST
 @Path("/register")
+@Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 public String reg(@FormParam("firstname") String firstname,
 		@FormParam("lastname") String lastname,
 		@FormParam("email") String email,
 		@FormParam("username") String username,
 		@FormParam("password") String password,
-@FormParam("confirmpassword") String confirmpassword){
-	String result="false";
-	int x=0;
-	try 
-	 {
-		DbConnection database= new DbConnection();
-		Connection connection = database.getConnection();
-		ArrayList<User> userList = null;
-		 SecurityManager securityManager= new SecurityManager();
-		PreparedStatement ps = connection.prepareStatement("INSERT INTO user(username,password,firstname,email,lastname)VALUES(?,?,?,?,?)");
-		ps.setString(1,username);
-		ps.setString(2, password);
-		ps.setString(3,firstname);
-		ps.setString(4,email);
-		ps.setString(5,lastname);
-
-		
-		
+@FormParam("confirmpassword") String confirmpassword) throws ApplicationException{
+	 User user = new User(username, password,firstname,lastname,email);
+     int result = UserDao.reg(user);
+     String users=null;
+     ArrayList<User> userList = new ArrayList<User>();
+     try
+ {
+	 SecurityManager securityManager= new SecurityManager();
 	 userList = securityManager.getAllUsersList();
+	 
+	// for (User user1 : userList) {
 		 String EMAIL_PATTERN = 
 				 "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
 				 + "+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 				 Pattern pattern = Pattern.compile(EMAIL_PATTERN);
-if( email == null || email.trim().equals("")&& !pattern.matcher(email).matches()&& username == null || username.trim().equals("")&& firstname == null || firstname.trim().equals("")&& lastname == null || lastname.trim().equals(""))
+if( user.getEmail() == null || user.getEmail().trim().equals("")&& !pattern.matcher(email).matches()&& user.getUsername() == null || user.getUsername().trim().equals("")&& user.getFirstname() == null || user.getFirstname().trim().equals("")&& user.getLastname() == null || user.getLastname().trim().equals(""))
 {
 					  
 						  System.out.println("please enter valid details");
 					  }
-					  else{
-					   x=ps.executeUpdate();
-					   result="Successfully Registered";
-					   connection.close();
-				 }
-				 
-	
-				 
-	} catch (Exception e)
-	 {
-	 e.printStackTrace();
-	 }
-
-	 return result;
+else{
+	userList.add(user);
+	Gson gson =new Gson();
+	 users =gson.toJson(user);
 }
+	 
+	 }
+	 catch (Exception e)
+	 {
+	 System.out.println("error");
+	 }
+     if(result != 1){
+         return "Invalid Details";
+      }
+      return "successfully Registered values"+users;
+    
+}
+	 
 @PUT
-@Path("/register")
+@Path("/update")
+@Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 public String update(@FormParam("firstname") String firstname,
 		@FormParam("lastname") String lastname,
@@ -111,72 +112,96 @@ public String update(@FormParam("firstname") String firstname,
 		@FormParam("username") String username,
 		@FormParam("password") String password,
 @FormParam("confirmpassword") String confirmpassword){
-	String result="false";
-	int x=0;
-	try 
+	 User user = new User(username, password,firstname,lastname,email);
+     int result = UserDao.update(user);
+     String users=null;
+     ArrayList<User> userList = new ArrayList<User>();
+     try 
 	 {
-		DbConnection database= new DbConnection();
-		Connection connection = database.getConnection();
-		ArrayList<User> userList = null;
-		 SecurityManager securityManager= new SecurityManager();
-		PreparedStatement ps = connection.prepareStatement("UPDATE user SET username=?,password=?,firstname=?,lastname=? WHERE email=?");
-		ps.setString(1,username);
-		ps.setString(2, password);
-		ps.setString(3,firstname);
-		
-		ps.setString(4,lastname);
-		ps.setString(5,email);
-		
-		
+	 
+	 SecurityManager securityManager= new SecurityManager();
 	 userList = securityManager.getAllUsersList();
+	// for (User user2 : userList) {
+		 String EMAIL_PATTERN = 
+				 "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+				 + "+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+				 Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+if( user.getEmail() == null || user.getEmail().trim().equals("")&& !pattern.matcher(email).matches())
+{
+	System.out.println("please enter valid email");
+		 
+}
+else{
+	if(user.getEmail().equals(email))	{			  
+		userList.add(user);
+		Gson gson =new Gson();
+		 users =gson.toJson(user);
+	  }
 	
-					  
-					   x=ps.executeUpdate();
-					   result="Successfully Registered";
-					   connection.close();
-				 
-				 
-	
-				 
-	} catch (Exception e)
-	 {
-	 e.printStackTrace();
-	 }
 
-	 return result;
+}
+	 
+	 }
+	 catch (Exception e)
+	 {
+	 System.out.println("error");
+	 }
+	 
+     if(result != 1){
+        return "Invalid";
+     }
+     return "successfully updated values"+users;
 }
 @DELETE
 @Path("/delete")
+@Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 public String delete(
-@FormParam("email") String email,
-@FormParam("username") String username){
-	String result="false";
-	 int status=0;
-		try{
-		DbConnection database= new DbConnection();
-		Connection connection = database.getConnection();
-		ArrayList<User> userList = null;
-		 SecurityManager securityManager= new SecurityManager();
-
-			PreparedStatement ps =connection.prepareStatement("delete from user where email=?");
-			
-		ps.setString(1,email);
-		
-		 userList = securityManager.getAllUsersList();
-		 
-					   status=ps.executeUpdate();
-					   result="Successfully Deleted";
-					   connection.close();
-				 
-				 
-
-				 
-	} catch (Exception e)
+		@FormParam("firstname") String firstname,
+		@FormParam("lastname") String lastname,
+		@FormParam("email") String email,
+		@FormParam("username") String username,
+		@FormParam("password") String password,
+@FormParam("confirmpassword") String confirmpassword){
+	 User user = new User(username, password,firstname,lastname,email);
+     int result= UserDao.delete(user);
+     String users=null;
+     ArrayList<User> userList = new ArrayList<User>();
+     try 
 	 {
-	 e.printStackTrace();
-	 }
-
-	 return result;
-	}
+	 
+	 SecurityManager securityManager= new SecurityManager();
+	 userList = securityManager.getAllUsersList();
+	 
+	 //for (User user3 : userList) {
+		 String EMAIL_PATTERN = 
+				 "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+				 + "+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+				 Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+if( user.getEmail() == null || user.getEmail().trim().equals("")&& !pattern.matcher(email).matches())
+{
+	System.out.println("please enter valid email");
+		 
 }
+else{
+	if(user.getEmail().equals(email))	{			  
+		userList.add(user);
+		Gson gson =new Gson();
+		 users =gson.toJson(user);
+	  }
+	
+
+}
+	 
+	 }
+	 catch (Exception e)
+	 {
+	 System.out.println("error");
+	 }
+	 if(result != 1){
+        return "Invalid email";
+     }
+     return "Successfully Deleted "+users;
+}
+}
+				 

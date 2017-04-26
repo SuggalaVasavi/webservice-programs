@@ -14,7 +14,6 @@ import restlog1.DbConnection;
 import restlog1.ApplicationException;
 public class UserDao {
  private static Connection connection;
- private static Statement ps;
 	/*static DbConnection database= new DbConnection();
 	static Connection connection=database.getConnection();*/
  public UserDao(){}
@@ -48,7 +47,7 @@ public static int update(User user){
 	ArrayList<User> userList = new ArrayList<User>();
 	int status=0;
 	try{
-	
+	connection=DbConnection.getConnection();
 		PreparedStatement ps =connection.prepareStatement("UPDATE user SET username=?,password=?,firstname=?,lastname=? WHERE email=?");
 		ps.setString(1,user.getUsername());
 		ps.setString(2, user.getPassword());
@@ -56,9 +55,16 @@ public static int update(User user){
 		ps.setString(4, user.getLastname());
 		ps.setString(5,user.getEmail());
 	status=ps.executeUpdate();
-	}catch(Exception e)
+		SQLWarning warning =ps.getWarnings();
+	if(warning != null)
+		throw new ApplicationException(warning.getMessage(), warning);
+	}catch(SQLException e)
 	{
-		System.out.println(e);
+		ApplicationException exception = new ApplicationException(e.getMessage(),e);
+		throw exception;
+	}
+	finally{
+		DbUtil.close(connection);
 	}
 	return status;
 }
@@ -66,15 +72,22 @@ public static int delete(User user){
 	ArrayList<User> userList = new ArrayList<User>();
 	int status=0;
 	try{
-	
+	connection=DbConnection.getConnection();
 		PreparedStatement ps =connection.prepareStatement("delete from user where email=?");
 		
 		ps.setString(1,user.getEmail());
-		//ps.setString(2, user.getUsername());
+	
 	status=ps.executeUpdate();
+	SQLWarning warning =ps.getWarnings();
+	if(warning != null)
+		throw new ApplicationException(warning.getMessage(), warning);
 	}catch(SQLException e)
 	{
-		System.out.println(e);
+		ApplicationException exception = new ApplicationException(e.getMessage(),e);
+		throw exception;
+	}
+	finally{
+		DbUtil.close(connection);
 	}
 	return status;
 }
@@ -82,9 +95,9 @@ public ArrayList<User> getAllUsers(Connection connection){
 ArrayList<User> userList = new ArrayList<User>();
 
 try {
-// String uname = request.getParameter("uname");
+connection=DbConnection.getConnection();
 PreparedStatement ps = connection.prepareStatement("SELECT * FROM user");
-// ps.setString(1,uname);
+
 ResultSet rs = ps.executeQuery();
 while (rs.next()) {
 User user = new User();

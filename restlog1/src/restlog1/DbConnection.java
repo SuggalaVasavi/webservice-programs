@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DbConnection {
 
  
-public Connection getConnection()
+public static Connection getConnection()
 {
 		Connection connection=null;	
 try
@@ -26,4 +26,3 @@ e.printStackTrace();
 return connection;
 }
 }
-

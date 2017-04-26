@@ -7,16 +7,16 @@ import restlog1.User;
  
 import restlog1.DbConnection;
  
-import restlog1.Handler;
+import restlog1.UserDao;
 ;
 public class SecurityManager {
 public ArrayList<User> getAllUsersList()throws Exception {
-ArrayList<User> userList = null;
+ArrayList<User> userList = new ArrayList<User>();
 try {
 DbConnection database= new DbConnection();
 Connection connection = database.getConnection();
-Handler Handler= new Handler();
-userList= Handler.getAllUsers(connection);
+UserDao UserDao= new UserDao();
+userList= UserDao.getAllUsers(connection);
 
 } catch (Exception e) {
 throw e;

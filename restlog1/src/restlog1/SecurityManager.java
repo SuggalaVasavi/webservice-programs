@@ -15,8 +15,8 @@ ArrayList<User> userList = new ArrayList<User>();
 try {
 DbConnection database= new DbConnection();
 Connection connection = database.getConnection();
-UserDao UserDao= new UserDao();
-userList= UserDao.getAllUsers(connection);
+UserDao userdao= new UserDao();
+userList= userdao.getAllUsers(connection);
 
 } catch (Exception e) {
 throw e;

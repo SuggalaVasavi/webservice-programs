@@ -9,16 +9,19 @@ import java.util.ArrayList;
 
 import dto.User;
 import dao.DbConnection;
-import db.DbUtil;
+import db.Dbutil;
 import exception.ApplicationException;
 public class UserDao {
-static DbConnection connection=null;
+private static Connection connection;
 public UserDao(){}
-public static  int reg(User user)throws ApplicationException{
+
+public static int reg(User user)throws SQLException{
 ArrayList<User> userList = new ArrayList<User>();
+
 int status=0;
 try{
-DbConnection connection=DbConnection.getInstance();
+	connection=DbConnection.getConnection();
+
 PreparedStatement ps =connection.prepareStatement("INSERT INTO user(username,password,firstname,email,lastname)VALUES(?,?,?,?,?)");
 ps.setString(1,user.getUsername());
 ps.setString(2, user.getPassword());
@@ -35,15 +38,19 @@ ApplicationException exception = new ApplicationException(e.getMessage(),e);
 throw exception;
 }
 finally{
-DbUtil.close(connection);
-}
+	Dbutil.close(connection);
+
 return status;
 }
-public static int update(User user) throws ApplicationException{
+}
+
+public static int update(User user)throws SQLException{
 ArrayList<User> userList = new ArrayList<User>();
+
 int status=0;
 try{
-	DbConnection connection=DbConnection.getInstance();
+	connection=DbConnection.getConnection();
+
 PreparedStatement ps =connection.prepareStatement("UPDATE user SET username=?,password=?,firstname=?,lastname=? WHERE email=?");
 ps.setString(1,user.getUsername());
 ps.setString(2, user.getPassword());
@@ -60,16 +67,20 @@ ApplicationException exception = new ApplicationException(e.getMessage(),e);
 throw exception;
 }
 finally{
-DbUtil.close(connection);
-}
+	Dbutil.close(connection);
+
 return status;
 }
-public static int delete(User user) throws ApplicationException{
+}
+
+public static int delete(User user) throws ApplicationException, SQLException{
 ArrayList<User> userList = new ArrayList<User>();
+
 int status=0;
+
 try{
-	DbConnection connection=DbConnection.getInstance();
-PreparedStatement ps =connection.prepareStatement("delete from user where email=?");
+	connection=DbConnection.getConnection();
+	PreparedStatement	ps =connection.prepareStatement("delete from user where email=?");
 ps.setString(1,user.getEmail());
 status=ps.executeUpdate();
 SQLWarning warning =ps.getWarnings();
@@ -81,14 +92,14 @@ ApplicationException exception = new ApplicationException(e.getMessage(),e);
 throw exception;
 }
 finally{
-DbUtil.close(connection);
+	Dbutil.close(connection);
 }
 return status;
 }
 public ArrayList<User> getAllUsers(Connection connection){
 ArrayList<User> userList = new ArrayList<User>();
 try {
-//connection=DbConnection.getConnection();
+
 PreparedStatement ps = connection.prepareStatement("SELECT * FROM user");
 ResultSet rs = ps.executeQuery();
 while (rs.next()) {

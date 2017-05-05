@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /*public class DbConnection { 
 public static Connection getConnection() 
 {
@@ -25,83 +28,36 @@ return connection;
 } */
 public class DbConnection {
 
-private static DbConnection instance;
+	private static DbConnection instance = new DbConnection();
+	private static final String url = "jdbc:mysql://localhost:3306/form";
 
-private static Connection connection;
+	private static final String username = "root";
 
-	private String url="jdbc:mysql://localhost:3306/form";
+	private static final String password = "1234";
+	private static final String DRIVER_CLASS = "com.mysql.jdbc.Driver";
 
-private String username="root";
-
-private String password="1234";
-
-DbConnection() throws SQLException{
-
-try
-
-
-
-{
-
-
-
-Class.forName("com.mysql.jdbc.Driver");
-
-
-
-this.connection = DriverManager.getConnection(url,username,password);
-
+public DbConnection(){
+	try{
+		Class.forName(DRIVER_CLASS);
+	}catch (ClassNotFoundException e) {
+        e.printStackTrace();
 }
-
-
-
-catch (ClassNotFoundException e)
-
-
-
-{
-
-
-
-	System.out.println("Databsae connection failed"+e.getMessage());
-
 }
+private Connection createConnection(){
+	Connection connection=null;	
+	try
+	{
+		connection = DriverManager.getConnection(url,username,password);
+	}
+	 catch (SQLException e) {
+         System.out.println("ERROR: Unable to Connect to Database.");
+     }
+     return connection;
+ }   
 
-}
+	public static Connection getConnection()
+	{
+	return instance.createConnection();
+	}
 
-
-
-public static  Connection getConnection(){
-
-return connection;
-
-
-
-}
-
-public static DbConnection getInstance()throws SQLException{
-
-	if(instance == null){
-
-		instance = new DbConnection();
-
-	
-
-	}else 
-
-			if(instance.getConnection().isClosed()){
-
-			instance = new DbConnection();
-
-		}
-
-		return instance;
-
-		}
-
-
-
-
-
-
-}
+}	

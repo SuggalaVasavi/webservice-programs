@@ -36,7 +36,7 @@ public class DbConnection {
 	private static final String password = "1234";
 	private static final String DRIVER_CLASS = "com.mysql.jdbc.Driver";
 
-public DbConnection(){
+private DbConnection(){
 	try{
 		Class.forName(DRIVER_CLASS);
 	}catch (ClassNotFoundException e) {
